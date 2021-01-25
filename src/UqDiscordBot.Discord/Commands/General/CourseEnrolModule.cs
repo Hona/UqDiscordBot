@@ -22,15 +22,12 @@ namespace UqDiscordBot.Discord.Commands.General
         private const Permissions StandardAccessPermissions = Permissions.AccessChannels | Permissions.ReadMessageHistory | Permissions.SendMessages;
 
         private DiscordChannel _matchingCourseChannel;
-        private DiscordChannel _category;
         private string _course;
 
-        private List<DiscordChannel> _allCourseCategories = new();
-        
         private async Task HandleInputAsync(CommandContext context, string course)
         {
             _matchingCourseChannel = null;
-            
+
             // CSSE1001 - '1001'
             var courseNumber = course.Substring(course.Length - 4);
             if (!int.TryParse(courseNumber, out var _))
@@ -41,32 +38,13 @@ namespace UqDiscordBot.Discord.Commands.General
 
             // Sanity trim
             _course = course.Trim().ToUpper();
-            
-            // Check if it already exists
-            var categoryIds = Configuration.GetSection("Uq:CourseCategoryId").Get<ulong[]>();
 
-            
-            // Loop through each category searching for the channel name
-            foreach (var categoryId in categoryIds)
+            var matchingChannel = context.Guild.Channels.Values.Where(x => x.Parent == null).FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
+
+            // Found it
+            if (matchingChannel != default)
             {
-                var category = await context.Client.GetChannelAsync(categoryId);
-                
-                if (!category.IsCategory)
-                {
-                    continue;
-                }
-                
-                _allCourseCategories.Add(category);
-
-                var courseChannels = category.Children.ToList();
-
-                var matchingChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
-
-                // Found it
-                if (matchingChannel != default)
-                {
-                    _matchingCourseChannel = matchingChannel;
-                }
+                _matchingCourseChannel = matchingChannel;
             }
         }
 
@@ -80,25 +58,17 @@ namespace UqDiscordBot.Discord.Commands.General
             // Create it first if it doesn't exist
             if (_matchingCourseChannel == null)
             {
-                var courseCategory = _allCourseCategories.FirstOrDefault(x => x.Children.Count() < 50);
-
-                if (courseCategory == null)
-                {
-                    CourseRaceConditionService.SemaphoreSlim.Release();
-                    throw new UserException("Out of course categories, contact Hona to make more");
-                }
-
-                await context.RespondAsync("Creating channel for this course, you are the first person in it!");   
-                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, courseCategory);
+                await context.RespondAsync("Creating channel for this course, you are the first person in it!");
+                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text);
             }
-            
+
             // Add user to it
             await _matchingCourseChannel.AddOverwriteAsync(context.Member, StandardAccessPermissions);
 
             await context.RespondAsync($"Added to course channel for {_matchingCourseChannel.Mention}");
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
-        
+
         [Command("drop")]
         public async Task DropCourseAsync(CommandContext context, string course)
         {
@@ -154,14 +124,48 @@ namespace UqDiscordBot.Discord.Commands.General
 
             await context.RespondAsync(embed: embedBuilder.Build());
         }
-        
+
         [Command("count")]
         public async Task CourseTotalAsync(CommandContext context)
         {
             // Impossible string
             await HandleInputAsync(context, "aaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaa0000");
 
-            await context.RespondAsync($"Total of {_allCourseCategories.Sum(x => !x.Children.Any() ? 0 : x.Children.Count())} course channels");
+            await context.RespondAsync($"Total of {context.Guild.Channels.Values.Count(x => x.Parent == null)} course channels");
+        }
+
+        [Command("migrate")]
+        [RequireUserPermissions(Permissions.Administrator)]
+        public async Task MigrateChannelsAsync(CommandContext context)
+        {
+            await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
+
+            try
+            {
+                var categoryIds = Configuration.GetSection("Uq:CourseCategoryId").Get<ulong[]>();
+
+
+                // Loop through each category searching for the channel name
+                foreach (var categoryId in categoryIds)
+                {
+                    var category = await context.Client.GetChannelAsync(categoryId);
+
+                    if (!category.IsCategory)
+                    {
+                        continue;
+                    }
+
+                    var matchingChannel = context.Guild.Channels.Values.Where(x => x.Parent == null)
+                        .FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            catch (Exception e)
+            {
+                CourseRaceConditionService.SemaphoreSlim.Release();
+                throw;
+            }
+
+            CourseRaceConditionService.SemaphoreSlim.Release();
         }
     }
 }
