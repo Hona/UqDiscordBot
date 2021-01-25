@@ -89,7 +89,8 @@ namespace UqDiscordBot.Discord.Commands.General
             await permissions.DeleteAsync();
             await context.RespondAsync($"Dropped course channel for {_matchingCourseChannel.Mention}");
 
-            if (!_matchingCourseChannel.PermissionOverwrites.Any())
+            // If the only override is the default everyone role, then no members are left in channel, free to prune
+            if (_matchingCourseChannel.PermissionOverwrites.All(x => x.Type != OverwriteType.Member))
             {
                 await _matchingCourseChannel.DeleteAsync("No members in class");
             }
