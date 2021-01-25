@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "QcaaDiscordBot.Discord": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

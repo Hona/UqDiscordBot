@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  discord-bot:
+    build:
+      dockerfile: src/UqDiscordBot.Discord/Dockerfile
+      context: .
+    image: uq-discord-bot
+    container_name: UqDiscordBot
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ConnectionStrings__Marten=User ID = uq;Password=uq12361361361FSRQ#%W$%Y$W%YREW_sdgf;Server=postgres;Port=5432;Database=uq_db;Integrated Security=true;Pooling=true
+    volumes:
+      - ./config/appsettings.json:/app/appsettings.json
+  postgres:
+    image: postgres
+    container_name: UqPostgres
+    environment:
+      - POSTGRES_USER=uq
+      - POSTGRES_PASSWORD=uq12361361361FSRQ#%W$%Y$W%YREW_sdgf
+      - POSTGRES_DB=uq_db
+    volumes:
+      - ./data:/var/lib/postgresql/data
