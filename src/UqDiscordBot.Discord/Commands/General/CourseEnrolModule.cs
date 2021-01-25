@@ -77,6 +77,34 @@ namespace UqDiscordBot.Discord.Commands.General
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
 
+        [Command("enrollfor")]
+        [Aliases("enrolfor")]
+        [RequireUserPermissions(Permissions.Administrator)]
+        public async Task EnrolInCourseAsync(CommandContext context, string course, DiscordMember member)
+        {
+            await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
+            await HandleInputAsync(context, course);
+
+            // Create it first if it doesn't exist
+            if (_matchingCourseChannel == null)
+            {
+                await context.RespondAsync("Creating channel for this course, you are the first person in it!");
+                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, overwrites: new []
+                {
+                    new DiscordOverwriteBuilder()
+                    {
+                        Denied = StandardAccessPermissions
+                    }.For(context.Guild.EveryoneRole)
+                });
+            }
+
+            // Add user to it
+            await _matchingCourseChannel.AddOverwriteAsync(member, StandardAccessPermissions);
+
+            await context.RespondAsync($"Added to course channel for {_matchingCourseChannel.Mention}");
+            CourseRaceConditionService.SemaphoreSlim.Release();
+        }
+
         [Command("drop")]
         public async Task DropCourseAsync(CommandContext context, string course)
         {
