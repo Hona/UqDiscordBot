@@ -61,7 +61,13 @@ namespace UqDiscordBot.Discord.Commands.General
             if (_matchingCourseChannel == null)
             {
                 await context.RespondAsync("Creating channel for this course, you are the first person in it!");
-                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text);
+                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, overwrites: new []
+                {
+                    new DiscordOverwriteBuilder()
+                    {
+                        Denied = StandardAccessPermissions
+                    }.For(context.Guild.EveryoneRole)
+                });
             }
 
             // Add user to it
