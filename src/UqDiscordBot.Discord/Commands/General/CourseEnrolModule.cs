@@ -88,6 +88,11 @@ namespace UqDiscordBot.Discord.Commands.General
             // Drop user from it
             await permissions.DeleteAsync();
             await context.RespondAsync($"Dropped course channel for {_matchingCourseChannel.Mention}");
+
+            if (!_matchingCourseChannel.PermissionOverwrites.Any())
+            {
+                await _matchingCourseChannel.DeleteAsync("No members in class");
+            }
         }
     }
 }
