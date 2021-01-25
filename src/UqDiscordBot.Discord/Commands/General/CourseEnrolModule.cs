@@ -77,16 +77,16 @@ namespace UqDiscordBot.Discord.Commands.General
                 return;
             }
 
-            var permissions = _matchingCourseChannel.PermissionsFor(context.Member);
-            if ((permissions & StandardAccessPermissions) != StandardAccessPermissions)
+            var permissions = _matchingCourseChannel.PermissionOverwrites.FirstOrDefault(x => x.Id == context.Member.Id);
+
+            if (permissions == null)
             {
                 await context.RespondAsync("You are not enrolled in that course");
                 return;
             }
-            
-            // Drop user from it
-            await _matchingCourseChannel.AddOverwriteAsync(context.Member, allow: Permissions.None, deny: Permissions.AccessChannels | Permissions.ReadMessageHistory | Permissions.SendMessages);
 
+            // Drop user from it
+            await permissions.DeleteAsync();
             await context.RespondAsync($"Dropped course channel for {_matchingCourseChannel.Mention}");
         }
     }
