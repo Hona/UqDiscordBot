@@ -48,7 +48,7 @@ namespace UqDiscordBot.Discord.Commands.General
             _matchingCourseChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, course, StringComparison.OrdinalIgnoreCase));
         }
 
-        [Command("enrol")]
+        [Command("enroll")]
         public async Task EnrolInCourseAsync(CommandContext context, string course)
         {
             await HandleInputAsync(context, course);
