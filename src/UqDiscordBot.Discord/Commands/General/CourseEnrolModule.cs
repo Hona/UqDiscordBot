@@ -160,7 +160,7 @@ namespace UqDiscordBot.Discord.Commands.General
         {
             await HandleInputAsync(context, "");
 
-            await context.RespondAsync($"Total of {_allCourseCategories.Sum(x => x.Children.Count())} course channels");
+            await context.RespondAsync($"Total of {_allCourseCategories.Sum(x => !x.Children.Any() ? 0 : x.Children.Count())} course channels");
         }
     }
 }
