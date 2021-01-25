@@ -27,6 +27,8 @@ namespace UqDiscordBot.Discord.Commands.General
         
         private async Task HandleInputAsync(CommandContext context, string course)
         {
+            _matchingCourseChannel = null;
+            
             // CSSE1001 - '1001'
             var courseNumber = course.Substring(course.Length - 4);
             if (!int.TryParse(courseNumber, out var _))
@@ -39,7 +41,6 @@ namespace UqDiscordBot.Discord.Commands.General
             
             // Check if it already exists
             var categoryIds = Configuration.GetSection("Uq:CourseCategoryId").Get<ulong[]>();
-
 
             foreach (var categoryId in categoryIds)
             {
@@ -54,9 +55,9 @@ namespace UqDiscordBot.Discord.Commands.General
 
                 var courseChannels = category.Children.ToList();
 
-                var matchingChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, course, StringComparison.OrdinalIgnoreCase));
+                var matchingChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
 
-                if (matchingChannel != null)
+                if (matchingChannel != default)
                 {
                     _matchingCourseChannel = matchingChannel;
                 }
@@ -64,6 +65,7 @@ namespace UqDiscordBot.Discord.Commands.General
         }
 
         [Command("enroll")]
+        [Aliases("enrol")]
         public async Task EnrolInCourseAsync(CommandContext context, string course)
         {
             await HandleInputAsync(context, course);
@@ -77,7 +79,8 @@ namespace UqDiscordBot.Discord.Commands.General
                 {
                     throw new UserException("Out of course categories, contact Hona to make more");
                 }
-                
+
+                await context.RespondAsync("Creating channel for this course, you are the first person in it!");   
                 _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, courseCategory);
             }
             
