@@ -53,29 +53,7 @@ namespace UqDiscordBot.Discord.Commands.General
         [Command("enroll")]
         [Aliases("enrol")]
         public async Task EnrolInCourseAsync(CommandContext context, string course)
-        {
-            await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
-            await HandleInputAsync(context, course);
-
-            // Create it first if it doesn't exist
-            if (_matchingCourseChannel == null)
-            {
-                await context.RespondAsync("Creating channel for this course, you are the first person in it!");
-                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, overwrites: new []
-                {
-                    new DiscordOverwriteBuilder()
-                    {
-                        Denied = StandardAccessPermissions
-                    }.For(context.Guild.EveryoneRole)
-                });
-            }
-
-            // Add user to it
-            await _matchingCourseChannel.AddOverwriteAsync(context.Member, StandardAccessPermissions);
-
-            await context.RespondAsync($"Added to course channel for {_matchingCourseChannel.Mention}");
-            CourseRaceConditionService.SemaphoreSlim.Release();
-        }
+            => await EnrolInCourseAsync(context, course, context.Member);
 
         [Command("enrollfor")]
         [Aliases("enrolfor")]
@@ -83,25 +61,36 @@ namespace UqDiscordBot.Discord.Commands.General
         public async Task EnrolInCourseAsync(CommandContext context, string course, DiscordMember member)
         {
             await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
-            await HandleInputAsync(context, course);
 
-            // Create it first if it doesn't exist
-            if (_matchingCourseChannel == null)
+            try
             {
-                await context.RespondAsync("Creating channel for this course, you are the first person in it!");
-                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, overwrites: new []
+                await HandleInputAsync(context, course);
+
+                // Create it first if it doesn't exist
+                if (_matchingCourseChannel == null)
                 {
-                    new DiscordOverwriteBuilder()
-                    {
-                        Denied = StandardAccessPermissions
-                    }.For(context.Guild.EveryoneRole)
-                });
+                    await context.RespondAsync("Creating channel for this course, you are the first person in it!");
+                    _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text,
+                        overwrites: new[]
+                        {
+                            new DiscordOverwriteBuilder()
+                            {
+                                Denied = StandardAccessPermissions
+                            }.For(context.Guild.EveryoneRole)
+                        });
+                }
+
+                // Add user to it
+                await _matchingCourseChannel.AddOverwriteAsync(member, StandardAccessPermissions);
+
+                await context.RespondAsync($"Added to course channel for {_matchingCourseChannel.Mention}");
+            }
+            catch
+            {
+                CourseRaceConditionService.SemaphoreSlim.Release();
+                throw;
             }
 
-            // Add user to it
-            await _matchingCourseChannel.AddOverwriteAsync(member, StandardAccessPermissions);
-
-            await context.RespondAsync($"Added to course channel for {_matchingCourseChannel.Mention}");
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
 
@@ -109,33 +98,42 @@ namespace UqDiscordBot.Discord.Commands.General
         public async Task DropCourseAsync(CommandContext context, string course)
         {
             await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
-            await HandleInputAsync(context, course);
 
-            // Create it first if it doesn't exist
-            if (_matchingCourseChannel == null)
+            try
+            {
+                await HandleInputAsync(context, course);
+
+                // Create it first if it doesn't exist
+                if (_matchingCourseChannel == null)
+                {
+                    CourseRaceConditionService.SemaphoreSlim.Release();
+                    await context.RespondAsync("That course does not exist");
+                    return;
+                }
+
+                var permissions = _matchingCourseChannel.PermissionOverwrites.FirstOrDefault(x => x.Id == context.Member.Id);
+
+                if (permissions == null)
+                {
+                    CourseRaceConditionService.SemaphoreSlim.Release();
+                    await context.RespondAsync("You are not enrolled in that course");
+                    return;
+                }
+
+                // Drop user from it
+                await permissions.DeleteAsync();
+                await context.RespondAsync($"Dropped course channel for {_matchingCourseChannel.Mention}");
+
+                // If the only override is the default everyone role, then no members are left in channel, free to prune
+                if (_matchingCourseChannel.PermissionOverwrites.All(x => x.Type != OverwriteType.Member))
+                {
+                    await _matchingCourseChannel.DeleteAsync("No members in class");
+                }
+            }
+            catch
             {
                 CourseRaceConditionService.SemaphoreSlim.Release();
-                await context.RespondAsync("That course does not exist");
-                return;
-            }
-
-            var permissions = _matchingCourseChannel.PermissionOverwrites.FirstOrDefault(x => x.Id == context.Member.Id);
-
-            if (permissions == null)
-            {
-                CourseRaceConditionService.SemaphoreSlim.Release();
-                await context.RespondAsync("You are not enrolled in that course");
-                return;
-            }
-
-            // Drop user from it
-            await permissions.DeleteAsync();
-            await context.RespondAsync($"Dropped course channel for {_matchingCourseChannel.Mention}");
-
-            // If the only override is the default everyone role, then no members are left in channel, free to prune
-            if (_matchingCourseChannel.PermissionOverwrites.All(x => x.Type != OverwriteType.Member))
-            {
-                await _matchingCourseChannel.DeleteAsync("No members in class");
+                throw;
             }
 
             CourseRaceConditionService.SemaphoreSlim.Release();
