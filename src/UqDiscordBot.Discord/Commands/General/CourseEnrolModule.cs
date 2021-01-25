@@ -152,9 +152,9 @@ namespace UqDiscordBot.Discord.Commands.General
 
             var embedBuilder = new DiscordEmbedBuilder()
             {
-                Title = _matchingCourseChannel.Mention,
+                Title = $"**{_course}**",
                 Description = $"There are {_matchingCourseChannel.Users.Count(x => !x.IsBot)} people in the group chat"
-            };
+            }.AddField("Jump", _matchingCourseChannel.Mention);
 
             await context.RespondAsync(embed: embedBuilder.Build());
         }
