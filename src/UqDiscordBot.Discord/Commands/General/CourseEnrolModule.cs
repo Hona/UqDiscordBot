@@ -39,7 +39,9 @@ namespace UqDiscordBot.Discord.Commands.General
             // Sanity trim
             _course = course.Trim().ToUpper();
 
-            var matchingChannel = context.Guild.Channels.Values.Where(x => x.Parent == null).FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
+            var matchingChannel = context.Guild.Channels.Values
+                .Where(x => x.Parent == null)
+                .FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
 
             // Found it
             if (matchingChannel != default)
@@ -144,7 +146,6 @@ namespace UqDiscordBot.Discord.Commands.General
             {
                 var categoryIds = Configuration.GetSection("Uq:CourseCategoryId").Get<ulong[]>();
 
-
                 // Loop through each category searching for the channel name
                 foreach (var categoryId in categoryIds)
                 {
@@ -155,8 +156,13 @@ namespace UqDiscordBot.Discord.Commands.General
                         continue;
                     }
 
-                    var matchingChannel = context.Guild.Channels.Values.Where(x => x.Parent == null)
-                        .FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
+                    foreach (var child in category.Children)
+                    {
+                        await child.ModifyAsync(x =>
+                        {
+                            x.Parent = null;
+                        });
+                    }
                 }
             }
             catch (Exception e)
