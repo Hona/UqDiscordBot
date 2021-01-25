@@ -154,5 +154,13 @@ namespace UqDiscordBot.Discord.Commands.General
 
             await context.RespondAsync(embed: embedBuilder.Build());
         }
+        
+        [Command("count")]
+        public async Task CourseTotalAsync(CommandContext context)
+        {
+            await HandleInputAsync(context, "");
+
+            await context.RespondAsync($"Total of {_allCourseCategories.Sum(x => x.Children.Count())} course channels");
+        }
     }
 }
