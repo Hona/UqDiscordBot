@@ -117,5 +117,6 @@ namespace UqDiscordBot.Discord.Commands.General
                 await _matchingCourseChannel.DeleteAsync("No members in class");
             }
         }
+        
     }
 }
