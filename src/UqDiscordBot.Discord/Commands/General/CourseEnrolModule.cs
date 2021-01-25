@@ -56,7 +56,7 @@ namespace UqDiscordBot.Discord.Commands.General
             // Create it first if it doesn't exist
             if (_matchingCourseChannel == null)
             {
-                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Private, _category);
+                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, _category);
             }
             
             // Add user to it
