@@ -134,6 +134,25 @@ namespace UqDiscordBot.Discord.Commands.General
 
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
-        
+
+        [Command("info")]
+        public async Task CourseInfoAsync(CommandContext context, string course)
+        {
+            await HandleInputAsync(context, course);
+
+            if (_matchingCourseChannel == null)
+            {
+                await context.RespondAsync("No existing channel found for that course, create one with !enroll");
+                return;
+            }
+
+            var embedBuilder = new DiscordEmbedBuilder()
+            {
+                Title = $"**{_course}**",
+                Description = $"There are {_matchingCourseChannel.Users.Count(x => !x.IsBot)} people in the group chat"
+            };
+
+            await context.RespondAsync(embed: embedBuilder.Build());
+        }
     }
 }
