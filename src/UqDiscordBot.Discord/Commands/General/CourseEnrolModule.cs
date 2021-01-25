@@ -32,7 +32,7 @@ namespace UqDiscordBot.Discord.Commands.General
             }
 
             // Sanity trim
-            _course = course.Trim();
+            _course = course.Trim().ToUpper();
             
             // Check if it already exists
             var categoryId = Configuration["Uq:CourseCategoryId"];
@@ -45,7 +45,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
             var courseChannels = _category.Children.ToList();
 
-            _matchingCourseChannel = courseChannels.FirstOrDefault(x => x.Name == course);
+            _matchingCourseChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, course, StringComparison.OrdinalIgnoreCase));
         }
 
         [Command("enrol")]
