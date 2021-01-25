@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -21,6 +22,8 @@ namespace UqDiscordBot.Discord.Commands.General
         private DiscordChannel _matchingCourseChannel;
         private DiscordChannel _category;
         private string _course;
+
+        private List<DiscordChannel> _allCourseCategories = new();
         
         private async Task HandleInputAsync(CommandContext context, string course)
         {
@@ -35,17 +38,29 @@ namespace UqDiscordBot.Discord.Commands.General
             _course = course.Trim().ToUpper();
             
             // Check if it already exists
-            var categoryId = Configuration["Uq:CourseCategoryId"];
-            _category = await context.Client.GetChannelAsync(ulong.Parse(categoryId));
+            var categoryIds = Configuration.GetSection("Uq:CourseCategoryId").Get<ulong[]>();
 
-            if (!_category.IsCategory)
+
+            foreach (var categoryId in categoryIds)
             {
-                throw new UserException("Bot error, please contact Hona - Category channel is not a category!");
+                var category = await context.Client.GetChannelAsync(categoryId);
+                
+                if (!category.IsCategory)
+                {
+                    continue;
+                }
+                
+                _allCourseCategories.Add(category);
+
+                var courseChannels = category.Children.ToList();
+
+                var matchingChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, course, StringComparison.OrdinalIgnoreCase));
+
+                if (matchingChannel != null)
+                {
+                    _matchingCourseChannel = matchingChannel
+                }
             }
-
-            var courseChannels = _category.Children.ToList();
-
-            _matchingCourseChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, course, StringComparison.OrdinalIgnoreCase));
         }
 
         [Command("enroll")]
@@ -56,7 +71,14 @@ namespace UqDiscordBot.Discord.Commands.General
             // Create it first if it doesn't exist
             if (_matchingCourseChannel == null)
             {
-                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, _category);
+                var courseCategory = _allCourseCategories.FirstOrDefault(x => x.Children.Count() < 50);
+
+                if (courseCategory == null)
+                {
+                    throw new UserException("Out of course categories, contact Hona to make more");
+                }
+                
+                _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text, courseCategory);
             }
             
             // Add user to it
