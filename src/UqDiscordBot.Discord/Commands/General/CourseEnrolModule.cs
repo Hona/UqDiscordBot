@@ -25,7 +25,7 @@ namespace UqDiscordBot.Discord.Commands.General
         private async Task HandleInputAsync(CommandContext context, string course)
         {
             // CSSE1001 - '1001'
-            var courseNumber = course.Substring(course.Length - 5);
+            var courseNumber = course.Substring(course.Length - 4);
             if (!int.TryParse(courseNumber, out var _))
             {
                 throw new UserException("Expected the course code to end in 4 numbers");
