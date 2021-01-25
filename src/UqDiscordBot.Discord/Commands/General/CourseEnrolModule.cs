@@ -58,7 +58,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
                 if (matchingChannel != null)
                 {
-                    _matchingCourseChannel = matchingChannel
+                    _matchingCourseChannel = matchingChannel;
                 }
             }
         }
