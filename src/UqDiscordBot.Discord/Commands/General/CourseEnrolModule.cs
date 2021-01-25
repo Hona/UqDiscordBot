@@ -158,7 +158,8 @@ namespace UqDiscordBot.Discord.Commands.General
         [Command("count")]
         public async Task CourseTotalAsync(CommandContext context)
         {
-            await HandleInputAsync(context, "");
+            // Impossible string
+            await HandleInputAsync(context, "aaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaa0000");
 
             await context.RespondAsync($"Total of {_allCourseCategories.Sum(x => !x.Children.Any() ? 0 : x.Children.Count())} course channels");
         }
