@@ -6,10 +6,12 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Configuration;
+using UqDiscordBot.Discord.Commands.Checks;
 using UqDiscordBot.Discord.Models;
 
 namespace UqDiscordBot.Discord.Commands.General
 {
+    [RequireBotChannel]
     public class CourseEnrolModule : UqModuleBase
     {
         public IConfiguration Configuration { get; set; }
