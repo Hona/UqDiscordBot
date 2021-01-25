@@ -9,6 +9,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Configuration;
 using UqDiscordBot.Discord.Commands.Checks;
 using UqDiscordBot.Discord.Models;
+using UqDiscordBot.Discord.Services;
 
 namespace UqDiscordBot.Discord.Commands.General
 {
@@ -16,6 +17,7 @@ namespace UqDiscordBot.Discord.Commands.General
     public class CourseEnrolModule : UqModuleBase
     {
         public IConfiguration Configuration { get; set; }
+        public CourseRaceConditionService CourseRaceConditionService { get; set; }
 
         private const Permissions StandardAccessPermissions = Permissions.AccessChannels | Permissions.ReadMessageHistory | Permissions.SendMessages;
 
@@ -33,6 +35,7 @@ namespace UqDiscordBot.Discord.Commands.General
             var courseNumber = course.Substring(course.Length - 4);
             if (!int.TryParse(courseNumber, out var _))
             {
+                CourseRaceConditionService.SemaphoreSlim.Release();
                 throw new UserException("Expected the course code to end in 4 numbers");
             }
 
@@ -68,6 +71,7 @@ namespace UqDiscordBot.Discord.Commands.General
         [Aliases("enrol")]
         public async Task EnrolInCourseAsync(CommandContext context, string course)
         {
+            await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
             await HandleInputAsync(context, course);
 
             // Create it first if it doesn't exist
@@ -77,6 +81,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
                 if (courseCategory == null)
                 {
+                    CourseRaceConditionService.SemaphoreSlim.Release();
                     throw new UserException("Out of course categories, contact Hona to make more");
                 }
 
@@ -88,16 +93,19 @@ namespace UqDiscordBot.Discord.Commands.General
             await _matchingCourseChannel.AddOverwriteAsync(context.Member, StandardAccessPermissions);
 
             await context.RespondAsync($"Added to course channel for {_matchingCourseChannel.Mention}");
+            CourseRaceConditionService.SemaphoreSlim.Release();
         }
         
         [Command("drop")]
         public async Task DropCourseAsync(CommandContext context, string course)
         {
+            await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
             await HandleInputAsync(context, course);
 
             // Create it first if it doesn't exist
             if (_matchingCourseChannel == null)
             {
+                CourseRaceConditionService.SemaphoreSlim.Release();
                 await context.RespondAsync("That course does not exist");
                 return;
             }
@@ -106,6 +114,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
             if (permissions == null)
             {
+                CourseRaceConditionService.SemaphoreSlim.Release();
                 await context.RespondAsync("You are not enrolled in that course");
                 return;
             }
@@ -119,6 +128,8 @@ namespace UqDiscordBot.Discord.Commands.General
             {
                 await _matchingCourseChannel.DeleteAsync("No members in class");
             }
+
+            CourseRaceConditionService.SemaphoreSlim.Release();
         }
         
     }
