@@ -45,6 +45,8 @@ namespace UqDiscordBot.Discord.Commands.General
             // Check if it already exists
             var categoryIds = Configuration.GetSection("Uq:CourseCategoryId").Get<ulong[]>();
 
+            
+            // Loop through each category searching for the channel name
             foreach (var categoryId in categoryIds)
             {
                 var category = await context.Client.GetChannelAsync(categoryId);
@@ -60,6 +62,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
                 var matchingChannel = courseChannels.FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
 
+                // Found it
                 if (matchingChannel != default)
                 {
                     _matchingCourseChannel = matchingChannel;

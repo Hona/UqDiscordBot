@@ -13,6 +13,6 @@ namespace UqDiscordBot.Discord.Commands
     [RequireUserPermissions(Permissions.Administrator)]
     public class AdminModule : UqModuleBase
     {
-        
+
     }
 }

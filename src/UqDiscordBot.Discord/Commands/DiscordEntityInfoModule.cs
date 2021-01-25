@@ -87,7 +87,7 @@ namespace UqDiscordBot.Discord.Commands
                 {
                     Text = channel.Id.ToString()
                 }
-            };
+            }.AddField("Position", channel.Position.ToString());
 
             await context.RespondAsync(embed: embed.Build());
         }
