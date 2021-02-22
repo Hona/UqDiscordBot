@@ -41,6 +41,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
             if (_course.Any(x => !char.IsLetterOrDigit(x)))
             {
+                CourseRaceConditionService.SemaphoreSlim.Release();
                 throw new Exception("Course codes must only contain alphanumeric characters");
             }
 
