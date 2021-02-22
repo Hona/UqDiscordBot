@@ -221,7 +221,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
             await context.RespondAsync(embed: new DiscordEmbedBuilder
             {
-                Title = member.DisplayName ?? member.Username,
+                Title = "Course Summary",
                 Author = new DiscordEmbedBuilder.EmbedAuthor
                 {
                     Name = member.DisplayName ?? member.Username,
