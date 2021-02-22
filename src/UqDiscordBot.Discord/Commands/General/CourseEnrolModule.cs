@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Marten.Util;
 using Microsoft.Extensions.Configuration;
 using UqDiscordBot.Discord.Commands.Checks;
 using UqDiscordBot.Discord.Models;
@@ -100,6 +101,36 @@ namespace UqDiscordBot.Discord.Commands.General
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
 
+        [RequireUserPermissions(Permissions.Administrator)]
+        public async Task CheckBrokenAsync(CommandContext context)
+        {
+            var channels = context.Guild.Channels.Values.Where(x => x.Parent == null && !x.IsCategory).ToList();
+
+            var outputtedChannelNames = new List<string>();
+
+            foreach (var channel in channels)
+            {
+                var channelName = new string(channel.Name.Where(char.IsLetterOrDigit).ToArray()).ToUpper();
+
+                if (outputtedChannelNames.Contains(channelName))
+                {
+                    continue;
+                }
+
+                var matchingChannel = channels.FirstOrDefault(x =>
+                    x.Id != channel.Id && new string(x.Name.Where(char.IsLetterOrDigit).ToArray()).ToUpper() ==
+                    channelName);
+
+                if (matchingChannel == null)
+                {
+                    continue;
+                }
+
+                outputtedChannelNames.Add(channelName);
+                await context.RespondAsync(channel.Mention + Environment.NewLine + matchingChannel.Mention);
+            }
+        }
+
         [Command("drop")]
         public async Task DropCourseAsync(CommandContext context, string course)
         {
@@ -171,7 +202,7 @@ namespace UqDiscordBot.Discord.Commands.General
             // Impossible string
             await HandleInputAsync(context, "aaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaa0000");
 
-            await context.RespondAsync($"Total of {context.Guild.Channels.Values.Count(x => x.Parent == null)} course channels");
+            await context.RespondAsync($"Total of {context.Guild.Channels.Values.Count(x => x.Parent == null && !x.IsCategory)} course channels");
         }
 
         [Command("migrate")]
