@@ -141,15 +141,20 @@ namespace UqDiscordBot.Discord.Commands.General
                             continue;
                         }
 
-                        await channel.AddOverwriteAsync(await courseOverride.GetMemberAsync(), StandardAccessPermissions);
+                        await channel.AddOverwriteAsync(await courseOverride.GetMemberAsync(),
+                            StandardAccessPermissions);
                     }
 
                     await matchingChannel.DeleteAsync();
                 }
+
+                CourseRaceConditionService.SemaphoreSlim.Release();
+                await context.RespondAsync("Done merging!");
             }
-            finally
+            catch (Exception e)
             {
                 CourseRaceConditionService.SemaphoreSlim.Release();
+                await context.RespondAsync("Done merging (but it errored)!" + Environment.NewLine + e);
             }
         }
 
