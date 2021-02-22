@@ -211,5 +211,24 @@ namespace UqDiscordBot.Discord.Commands.General
 
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
+
+        [Command("summary")]
+        public async Task UserSummaryAsync(CommandContext context, DiscordMember member)
+        {
+            var courseChats = context.Guild.Channels.Values.Where(x => x.Parent == null && !x.IsCategory);
+
+            var userChats = courseChats.Where(x => x.PermissionOverwrites.Any(x => x.Id == member.Id));
+
+            await context.RespondAsync(embed: new DiscordEmbedBuilder
+            {
+                Title = member.DisplayName ?? member.Username,
+                Author = new DiscordEmbedBuilder.EmbedAuthor
+                {
+                    Name = member.DisplayName ?? member.Username,
+                    IconUrl = member.AvatarUrl ?? member.DefaultAvatarUrl
+                },
+                Description = Formatter.BlockCode(string.Join(Environment.NewLine, userChats.Select(x => x.Name.ToUpper())))
+            });
+        }
     }
 }
