@@ -101,34 +101,55 @@ namespace UqDiscordBot.Discord.Commands.General
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
 
-        [Command("checkbroken")]
+        [Command("mergebroken")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task CheckBrokenAsync(CommandContext context)
         {
-            var channels = context.Guild.Channels.Values.Where(x => x.Parent == null && !x.IsCategory).ToList();
+            await CourseRaceConditionService.SemaphoreSlim.WaitAsync();
 
-            var outputtedChannelNames = new List<string>();
-
-            foreach (var channel in channels)
+            try
             {
-                var channelName = new string(channel.Name.Where(char.IsLetterOrDigit).ToArray()).ToUpper();
+                var channels = context.Guild.Channels.Values.Where(x => x.Parent == null && !x.IsCategory).ToList();
 
-                if (outputtedChannelNames.Contains(channelName))
+                var outputtedChannelNames = new List<string>();
+
+                foreach (var channel in channels)
                 {
-                    continue;
+                    var channelName = new string(channel.Name.Where(char.IsLetterOrDigit).ToArray()).ToUpper();
+
+                    if (outputtedChannelNames.Contains(channelName))
+                    {
+                        continue;
+                    }
+
+                    var matchingChannel = channels.FirstOrDefault(x =>
+                        x.Id != channel.Id && new string(x.Name.Where(char.IsLetterOrDigit).ToArray()).ToUpper() ==
+                        channelName);
+
+                    if (matchingChannel == null)
+                    {
+                        continue;
+                    }
+
+                    outputtedChannelNames.Add(channelName);
+                    await context.RespondAsync(channel.Mention + Environment.NewLine + matchingChannel.Mention);
+
+                    foreach (var courseOverride in matchingChannel.PermissionOverwrites)
+                    {
+                        if (courseOverride.Type != OverwriteType.Member)
+                        {
+                            continue;
+                        }
+
+                        await channel.AddOverwriteAsync(await courseOverride.GetMemberAsync(), StandardAccessPermissions);
+                    }
+
+                    await matchingChannel.DeleteAsync();
                 }
-
-                var matchingChannel = channels.FirstOrDefault(x =>
-                    x.Id != channel.Id && new string(x.Name.Where(char.IsLetterOrDigit).ToArray()).ToUpper() ==
-                    channelName);
-
-                if (matchingChannel == null)
-                {
-                    continue;
-                }
-
-                outputtedChannelNames.Add(channelName);
-                await context.RespondAsync(channel.Mention + Environment.NewLine + matchingChannel.Mention);
+            }
+            finally
+            {
+                CourseRaceConditionService.SemaphoreSlim.Release();
             }
         }
 
