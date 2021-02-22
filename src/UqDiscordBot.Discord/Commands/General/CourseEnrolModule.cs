@@ -101,6 +101,7 @@ namespace UqDiscordBot.Discord.Commands.General
             CourseRaceConditionService.SemaphoreSlim.Release();
         }
 
+        [Command("checkbroken")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task CheckBrokenAsync(CommandContext context)
         {
