@@ -39,6 +39,11 @@ namespace UqDiscordBot.Discord.Commands.General
             // Sanity trim
             _course = course.Trim().ToUpper();
 
+            if (_course.Any(x => !char.IsLetterOrDigit(x)))
+            {
+                throw new Exception("Course codes must only contain alphanumeric characters");
+            }
+
             var matchingChannel = context.Guild.Channels.Values
                 .Where(x => x.Parent == null)
                 .FirstOrDefault(x => string.Equals(x.Name, _course, StringComparison.OrdinalIgnoreCase));
