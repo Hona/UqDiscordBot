@@ -25,7 +25,7 @@ namespace UqDiscordBot.Discord.Commands.General
         private DiscordChannel _matchingCourseChannel;
         private string _course;
 
-        private async Task HandleInputAsync(CommandContext context, string course)
+        private void HandleInput(CommandContext context, string course)
         {
             _matchingCourseChannel = null;
 
@@ -33,7 +33,6 @@ namespace UqDiscordBot.Discord.Commands.General
             var courseNumber = course.Substring(course.Length - 4);
             if (!int.TryParse(courseNumber, out var _))
             {
-                CourseRaceConditionService.SemaphoreSlim.Release();
                 throw new UserException("Expected the course code to end in 4 numbers");
             }
 
@@ -42,7 +41,6 @@ namespace UqDiscordBot.Discord.Commands.General
 
             if (_course.Any(x => !char.IsLetterOrDigit(x)))
             {
-                CourseRaceConditionService.SemaphoreSlim.Release();
                 throw new Exception("Course codes must only contain alphanumeric characters");
             }
 
@@ -71,7 +69,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
             try
             {
-                await HandleInputAsync(context, course);
+                HandleInput(context, course);
 
                 // Create it first if it doesn't exist
                 if (_matchingCourseChannel == null)
@@ -165,7 +163,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
             try
             {
-                await HandleInputAsync(context, course);
+                HandleInput(context, course);
 
                 // Create it first if it doesn't exist
                 if (_matchingCourseChannel == null)
@@ -206,7 +204,7 @@ namespace UqDiscordBot.Discord.Commands.General
         [Command("info")]
         public async Task CourseInfoAsync(CommandContext context, string course)
         {
-            await HandleInputAsync(context, course);
+            HandleInput(context, course);
 
             if (_matchingCourseChannel == null)
             {
@@ -227,7 +225,7 @@ namespace UqDiscordBot.Discord.Commands.General
         public async Task CourseTotalAsync(CommandContext context)
         {
             // Impossible string
-            await HandleInputAsync(context, "aaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaa0000");
+            HandleInput(context, "aaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaa0000");
 
             await context.RespondAsync($"Total of {context.Guild.Channels.Values.Count(x => x.Parent == null && !x.IsCategory)} course channels");
         }
