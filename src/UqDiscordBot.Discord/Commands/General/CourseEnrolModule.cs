@@ -8,6 +8,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Marten.Util;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using UqDiscordBot.Discord.Commands.Checks;
 using UqDiscordBot.Discord.Models;
 using UqDiscordBot.Discord.Services;
@@ -285,6 +286,44 @@ namespace UqDiscordBot.Discord.Commands.General
                 },
                 Description = Formatter.BlockCode(string.Join(Environment.NewLine, userChats.Select(x => x.Name.ToUpper())))
             });
+        }
+
+        [Command("sort")]
+        public async Task SortAsync(CommandContext context)
+        {
+            var channels = context.Guild.Channels.Values.Where(x => x.Parent == null && !x.IsCategory).ToList();
+
+            var maxPosition = channels.Select(x => x.Position).Max();
+
+            var sortedChannelNames = channels.Select(x => x.Name).OrderBy(x => x).ToList();
+            var sortedChannels =
+                sortedChannelNames.Select(sortedChannelName => channels.Single(x => x.Name == sortedChannelName)).ToList();
+
+            for (var i = 0; i < sortedChannels.Count; i++)
+            {
+                var channel = sortedChannels[i];
+
+                Logger.LogInformation($"Channel '{channel.Name}' moving to {i}");
+
+                if (channel.Position == i)
+                {
+                    continue;
+                }
+
+                await channel.ModifyPositionAsync(i);
+            }
+
+            var myChannels = channels.Where(x => string.Equals(x.Name, "MATH1061", StringComparison.OrdinalIgnoreCase) ||
+                                                 string.Equals(x.Name, "INFS1200", StringComparison.OrdinalIgnoreCase) ||
+                                                 string.Equals(x.Name, "CRIM1000", StringComparison.OrdinalIgnoreCase) ||
+                                                 string.Equals(x.Name, "CSSE1001", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            for (var i = 0; i < 4; i++)
+            {
+                await myChannels[i].ModifyPositionAsync(i + (maxPosition - 3));
+            }
+
+            await context.RespondAsync("Done");
         }
     }
 }
