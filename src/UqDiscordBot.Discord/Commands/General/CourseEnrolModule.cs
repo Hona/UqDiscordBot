@@ -289,6 +289,7 @@ namespace UqDiscordBot.Discord.Commands.General
         }
 
         [Command("sort")]
+        [RequireUserPermissions(Permissions.Administrator)]
         public async Task SortAsync(CommandContext context)
         {
             var channels = (await context.Guild.GetChannelsAsync()).Where(x => x.Parent == null && !x.IsCategory).ToList();
