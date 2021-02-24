@@ -304,14 +304,18 @@ namespace UqDiscordBot.Discord.Commands.General
 
             await context.RespondAsync(new string(orderedChannels.Take(2000).ToArray()));
 
+            var totalMoved = 0;
+
             for (var i = 0; i < sortedChannels.Count; i++)
             {
                 var channel = sortedChannels[i];
-                
+
                 if (channel.Position == i)
                 {
                     continue;
                 }
+
+                totalMoved++;
 
                 await channel.ModifyPositionAsync(i);
             }
@@ -326,7 +330,7 @@ namespace UqDiscordBot.Discord.Commands.General
                 await myChannels[i].ModifyPositionAsync(i + (maxPosition - 3));
             }
 
-            await context.RespondAsync("Done");
+            await context.RespondAsync($"Done, moved {totalMoved} channels");
         }
     }
 }
