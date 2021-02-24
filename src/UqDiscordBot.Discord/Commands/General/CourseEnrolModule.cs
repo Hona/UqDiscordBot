@@ -307,9 +307,7 @@ namespace UqDiscordBot.Discord.Commands.General
             for (var i = 0; i < sortedChannels.Count; i++)
             {
                 var channel = sortedChannels[i];
-
-                Logger.LogInformation($"Channel '{channel.Name}' moving to {i}");
-
+                
                 if (channel.Position == i)
                 {
                     continue;
