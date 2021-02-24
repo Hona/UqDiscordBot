@@ -317,8 +317,26 @@ namespace UqDiscordBot.Discord.Commands.General
                 }
 
                 totalMoved++;
+            }
+
+            await context.RespondAsync($"Moving {totalMoved} out of {sortedChannels.Count}");
+
+            for (var i = 0; i < sortedChannels.Count; i++)
+            {
+                if (i % 15 == 0)
+                {
+                    await context.RespondAsync($"Up to #{i}");
+                }
+
+                var channel = sortedChannels[i];
+
+                if (channel.Position == i)
+                {
+                    continue;
+                }
 
                 await channel.ModifyPositionAsync(i);
+                await Task.Delay(15000);
             }
 
             var myChannels = channels.Where(x => string.Equals(x.Name, "MATH1061", StringComparison.OrdinalIgnoreCase) ||
@@ -329,6 +347,7 @@ namespace UqDiscordBot.Discord.Commands.General
             for (var i = 0; i < 4; i++)
             {
                 await myChannels[i].ModifyPositionAsync(i + (maxPosition - 3));
+                await Task.Delay(15000);
             }
 
             await context.RespondAsync($"Done, moved {totalMoved} channels");
