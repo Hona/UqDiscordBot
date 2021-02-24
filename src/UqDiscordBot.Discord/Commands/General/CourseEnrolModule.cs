@@ -292,13 +292,15 @@ namespace UqDiscordBot.Discord.Commands.General
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task SortAsync(CommandContext context)
         {
+            bool NotMyChannels(DiscordChannel x) => string.Equals(x.Name, "MATH1061", StringComparison.OrdinalIgnoreCase) || string.Equals(x.Name, "INFS1200", StringComparison.OrdinalIgnoreCase) || string.Equals(x.Name, "CRIM1000", StringComparison.OrdinalIgnoreCase) || string.Equals(x.Name, "CSSE1001", StringComparison.OrdinalIgnoreCase);
+
             var channels = (await context.Guild.GetChannelsAsync()).Where(x => x.Parent == null && !x.IsCategory).ToList();
 
             var maxPosition = channels.Select(x => x.Position).Max();
 
             var sortedChannelNames = channels.Select(x => x.Name).OrderBy(x => x).ToList();
             var sortedChannels =
-                sortedChannelNames.Select(sortedChannelName => channels.Single(x => x.Name == sortedChannelName)).ToList();
+                sortedChannelNames.Select(sortedChannelName => channels.Single(x => x.Name == sortedChannelName)).Where(NotMyChannels).ToList();
 
 
             var orderedChannels = string.Join(" ", sortedChannels.Select(x => x.Name));
@@ -339,10 +341,7 @@ namespace UqDiscordBot.Discord.Commands.General
                 await Task.Delay(15000);
             }
 
-            var myChannels = channels.Where(x => string.Equals(x.Name, "MATH1061", StringComparison.OrdinalIgnoreCase) ||
-                                                 string.Equals(x.Name, "INFS1200", StringComparison.OrdinalIgnoreCase) ||
-                                                 string.Equals(x.Name, "CRIM1000", StringComparison.OrdinalIgnoreCase) ||
-                                                 string.Equals(x.Name, "CSSE1001", StringComparison.OrdinalIgnoreCase)).ToArray();
+            var myChannels = channels.Where(NotMyChannels).ToArray();
 
             for (var i = 0; i < 4; i++)
             {
