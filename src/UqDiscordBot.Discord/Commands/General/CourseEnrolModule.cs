@@ -291,7 +291,7 @@ namespace UqDiscordBot.Discord.Commands.General
         [Command("sort")]
         public async Task SortAsync(CommandContext context)
         {
-            var channels = context.Guild.Channels.Values.Where(x => x.Parent == null && !x.IsCategory).ToList();
+            var channels = (await context.Guild.GetChannelsAsync()).Where(x => x.Parent == null && !x.IsCategory).ToList();
 
             var maxPosition = channels.Select(x => x.Position).Max();
 
