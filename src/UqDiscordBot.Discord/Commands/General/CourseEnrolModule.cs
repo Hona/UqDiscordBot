@@ -299,6 +299,11 @@ namespace UqDiscordBot.Discord.Commands.General
             var sortedChannels =
                 sortedChannelNames.Select(sortedChannelName => channels.Single(x => x.Name == sortedChannelName)).ToList();
 
+
+            var orderedChannels = string.Join(" ", sortedChannels.Select(x => x.Name));
+
+            await context.RespondAsync(new string(orderedChannels.Take(2000).ToArray()));
+
             for (var i = 0; i < sortedChannels.Count; i++)
             {
                 var channel = sortedChannels[i];
