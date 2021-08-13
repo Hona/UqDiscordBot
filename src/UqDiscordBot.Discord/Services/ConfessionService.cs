@@ -48,9 +48,7 @@ namespace UqDiscordBot.Discord.Services
             _ = Task.Run(async () =>
             {
                 _confessionChannel ??= await _discordClient.GetChannelAsync(ulong.Parse(_configuration["ConfessionChannelId"]));
-
-                await _confessionChannel.SendMessageAsync();
-
+                
                 _adminChannel ??= await _discordClient.GetChannelAsync(ulong.Parse(_configuration["AdminChannelId"]));
 
                 var embedBuilder = new DiscordEmbedBuilder
