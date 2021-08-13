@@ -54,7 +54,7 @@ namespace UqDiscordBot.Discord.Services
                 var embedBuilder = new DiscordEmbedBuilder
                 {
                     Title = "Confession",
-                    Color = new DiscordColor((byte)_random.Next(256), _random.Next(256), _random.Next(256)),
+                    Color = new DiscordColor((byte)_random.Next(256), (byte)_random.Next(256), (byte)_random.Next(256)),
                     Description = e.Message.Content,
                     Timestamp = DateTimeOffset.Now
                 };
