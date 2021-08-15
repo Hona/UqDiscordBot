@@ -41,7 +41,7 @@ namespace UqDiscordBot.Discord.Services
 
         private Task DiscordClientOnMessageCreated(DiscordClient sender, MessageCreateEventArgs e)
         {
-            if (e.Channel is not DiscordDmChannel)
+            if (e.Channel is not DiscordDmChannel || e.Author.IsCurrent || e.Author.IsBot)
             {
                 return Task.CompletedTask;
             }
