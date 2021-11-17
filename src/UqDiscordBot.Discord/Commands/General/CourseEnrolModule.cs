@@ -79,10 +79,10 @@ namespace UqDiscordBot.Discord.Commands.General
                     _matchingCourseChannel = await context.Guild.CreateChannelAsync(_course, ChannelType.Text,
                         overwrites: new[]
                         {
-                            new DiscordOverwriteBuilder()
+                            new DiscordOverwriteBuilder(context.Guild.EveryoneRole)
                             {
                                 Denied = StandardAccessPermissions
-                            }.For(context.Guild.EveryoneRole)
+                            }
                         });
                 }
 

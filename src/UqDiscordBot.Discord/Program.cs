@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using UqDiscordBot.Discord;
 using UqDiscordBot.Discord.Helpers;
+using Weasel.Postgresql;
 
 using var logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
