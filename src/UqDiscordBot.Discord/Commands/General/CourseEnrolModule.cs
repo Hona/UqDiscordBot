@@ -351,5 +351,33 @@ namespace UqDiscordBot.Discord.Commands.General
 
             await context.RespondAsync($"Done, moved {totalMoved} channels");
         }
+
+        [Command("purge")]
+        [RequireUserPermissions(Permissions.Administrator)]
+        public async Task PurgeOldChannelsAsync(CommandContext context, bool dryRun = true, bool listChannels = false)
+        {
+            var unusedCourseChannels = context.Guild.Channels.Values
+                .Where(x => x.Parent == null)
+                .Where(x => x.LastMessageId == null)
+                .ToList();
+
+            if (!dryRun)
+            {
+                foreach (var channel in unusedCourseChannels)
+                {
+                    await channel.DeleteAsync("Purge");
+                }
+            }
+
+            if (listChannels)
+            {
+                await ReplyNewEmbedAsync(context, 
+                    string.Join(Environment.NewLine, unusedCourseChannels.Select(x => x.Name)),
+                    DiscordColor.Black);
+            }
+
+
+            await ReplyNewEmbedAsync(context, $"Done purging {unusedCourseChannels.Count} old channels", DiscordColor.Blue);
+        }
     }
 }
