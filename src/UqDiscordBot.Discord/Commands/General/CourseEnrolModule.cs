@@ -358,6 +358,8 @@ namespace UqDiscordBot.Discord.Commands.General
         {
             var unusedCourseChannels = context.Guild.Channels.Values
                 .Where(x => x.Parent == null)
+                .Where(x => !x.IsCategory)
+                .Where(x => x.Type == ChannelType.Text)
                 .Where(x => x.LastMessageId == null)
                 .ToList();
 
@@ -371,7 +373,7 @@ namespace UqDiscordBot.Discord.Commands.General
 
             if (listChannels)
             {
-                await ReplyNewEmbedAsync(context, 
+                await ReplyNewEmbedAsync(context,
                     string.Join(Environment.NewLine, unusedCourseChannels.Select(x => x.Name)),
                     DiscordColor.Black);
             }
